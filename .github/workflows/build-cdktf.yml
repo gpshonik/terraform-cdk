@@ -1,0 +1,43 @@
+name: Build CDKTF Provider
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g., v14.17.0)'
+        required: true
+        default: 'v14.17.0'
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout CDKTF provider
+        uses: actions/checkout@v4
+        with:
+          repository: cdktf/cdktf-provider-azurerm
+          ref: ${{ github.event.inputs.version }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          
+      - name: Set version in package.json
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${VERSION#v}"  # Remove 'v' prefix if present
+          npm version $VERSION --no-git-tag-version --allow-same-version
+          
+      - name: Install and build
+        run: |
+          npm install --legacy-peer-deps
+          npx projen compile
+          npx projen package:dotnet
+          
+      - name: Upload NuGet package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package-${{ github.event.inputs.version }}
+
+          path: dist/dotnet/*.nupkg
