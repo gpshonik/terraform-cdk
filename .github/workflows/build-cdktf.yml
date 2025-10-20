@@ -10,7 +10,7 @@ on:
   
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout CDKTF provider
         uses: actions/checkout@v4
@@ -41,3 +41,4 @@ jobs:
           name: nuget-package-${{ github.event.inputs.version }}
 
           path: dist/dotnet/*.nupkg
+
